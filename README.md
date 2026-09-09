@@ -3,9 +3,9 @@
 > **[中文化] qwen-audio-agent**
 >
 > 此项目是 [QwenAudio/qwen-audio-agent](https://github.com/QwenAudio/qwen-audio-agent) 的中文翻译版本。
-> - 原项目 Stars: 0
-> - 主语言: 
-> - 许可证: 
+> - 原项目 Stars: 2385
+> - 主语言: JavaScript
+> - 许可证: Apache-2.0
 > - 翻译日期: 2026-09-10
 > - 原始 README: [README_en.md](README_en.md)
 >
