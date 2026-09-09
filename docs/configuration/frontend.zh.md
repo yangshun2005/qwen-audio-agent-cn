@@ -1,0 +1,61 @@
+# 前台配置
+
+语音前台是 Gateway 连接的实时语音模型。本页设置都写在用户配置文件中
+（`~/.config/qwaudio/config.env`，见[配置总览](../configuration.zh.md)），
+修改后按[实际运行方式应用设置](../operations/gateway.zh.md#修改配置后生效)：终端退出重启、后台服务执行 `gateway restart`，桌面版点击应用。
+
+## 凭据与端点
+
+默认 Provider 是 DashScope（`QWEN_AUDIO_REALTIME_PROVIDER=dashscope`）：
+
+```dotenv
+DASHSCOPE_API_KEY=your-key
+```
+
+| 设置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `DASHSCOPE_API_KEY` | — | 百炼 API Key，实时语音前台与 Gateway 其他功能共用 |
+| `QWEN_AUDIO_REALTIME_API_KEY` | 空 | 语音前台的 `DASHSCOPE_API_KEY` 高优先级别名 |
+| `QWEN_AUDIO_REALTIME_BASE_URL` / `QWEN_AUDIO_REALTIME_URL` | 空 | 覆盖 DashScope Realtime 端点（私有部署或代理） |
+| `DASHSCOPE_WORKSPACE_ID` | 空 | 切换到百炼专属 workspace 端点 |
+
+其他前台可选择 [Speech-to-Speech](../voice-frontends/speech-to-speech.zh.md)，或通过
+[面壁智能](../voice-frontends/minicpm-o.zh.md)连接本地及云端 MiniCPM-o 4.5 服务；自定义 Provider 需实现
+Provider 契约，见[自定义 Provider](../voice-frontends/custom-provider.zh.md)。
+
+MiniCPM-o 当前公开的 Audio Realtime 传输支持连续音频输入及文本、音频输出，
+但不提供对话项、结构化 Function Calling 或输入转写。因此它目前定位为实时语音
+聊天前台，不用于编排后台 Agent。
+
+前台工具单独配置：Web 搜索（`QWEN_AUDIO_WEB_SEARCH_PROVIDER`，见
+[配置总览](../configuration.zh.md)）；通用对话工具见
+[前台 MCP 客户端](../reference/frontend-mcp.zh.md)、
+[前台 OpenAPI 适配器](../reference/frontend-openapi.zh.md)或
+[前台 Profile](../reference/frontend-profile.zh.md)。
+
+## Realtime 模型选择
+
+一个 Gateway 只拥有一个当前生效的 Realtime 模型。桌面设置页可以配置本地自有
+Gateway 的模型，CLI 提供等价命令：
+
+```bash
+qwenaudio config show
+qwenaudio config set --realtime-model qwen3.5-omni-flash-realtime
+# 以下仅用于已安装的用户后台服务：
+qwenaudio gateway restart
+```
+
+精确支持的模型 ID 如下：
+
+| 模型 | 模型输入 | 模型输出 | Realtime 传输 |
+| --- | --- | --- | --- |
+| `qwen3.5-omni-flash-realtime` | 文本、音频、图像/视频帧 | 文本、音频 | 文本、音频、实时 JPEG 帧 |
+| `qwen3.5-omni-plus-realtime` | 文本、音频、图像/视频帧 | 文本、音频 | 文本、音频、实时 JPEG 帧 |
+| `qwen-audio-3.0-realtime-plus`（默认） | 文本、音频 | 文本、音频 | 文本、音频 |
+| `qwen-audio-3.0-realtime-flash` | 文本、音频 | 文本、音频 | 文本、音频 |
+
+四个档案都支持 Function Calling。模型能力仍与传输能力分离：Omni 可以接收 WebUI
+经过 capability 协商的实时 JPEG 帧，普通上传图片继续走附件链路；Desktop 与 TUI
+暂不采集实时画面。客户端从 Gateway health 读取权威档案；同一 Gateway 上的不同客户端不能选择互相冲突的模型。桌面版附着到借用的
+Gateway 时，或后续 CLI 运行时使用了冲突的已配置模型时，会拒绝不一致，而不会静默
+修改运行中服务。回滚时设置上表的旧版模型 ID 并重启 Gateway。
